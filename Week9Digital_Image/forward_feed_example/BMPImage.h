@@ -33,7 +33,7 @@ struct BMPHeader
 	int num_color_important_;  // Number of important colors.  If 0, all colors are important
 };
 
-const bool writeBMP24(const char *filename, const int x_res, const int y_res, const unsigned char* rgb_array)
+const bool writeBMP24(const char *filename, const int x_res, const int y_res, const RGB* rgb_array)
 {
 	int i, j, ipos;
 	int bytesPerLine;
@@ -96,9 +96,9 @@ const bool writeBMP24(const char *filename, const int x_res, const int y_res, co
 		for (j = 0; j < width; j++)
 		{
 			ipos = 3 * (width * i + j);
-			buffer[3 * j]	  = rgb_array[(j + i * x_res) * 3 + 2]; // blue
-			buffer[3 * j + 1] = rgb_array[(j + i * x_res) * 3 + 1]; // green
-			buffer[3 * j + 2] = rgb_array[(j + i * x_res) * 3 + 0];	// red
+			buffer[3 * j]	  = (unsigned char)rgb_array[(j + i * x_res)].blue_; // blue
+			buffer[3 * j + 1] = (unsigned char)rgb_array[(j + i * x_res)].green_; // green
+			buffer[3 * j + 2] = (unsigned char)rgb_array[(j + i * x_res)].red_;	// red
 		}
 
 		fwrite(buffer, bytesPerLine, 1, file);
@@ -169,7 +169,7 @@ const bool readBMP24(const char* imagepath, int* res_x_, int* res_y_, RGB** rgb_
     // Create a buffer
 //      data_.initialize(0, 0, width, height, false);
 
-    *rgb_array = (unsigned char*)malloc(sizeof(unsigned char)*(width * height * 3));
+    *rgb_array = (RGB*)malloc(sizeof(RGB)*(width * height));
 
     long buf_pos = 0;
     long new_pos = 0;
@@ -180,9 +180,9 @@ const bool readBMP24(const char* imagepath, int* res_x_, int* res_y_, RGB** rgb_
             new_pos = y*width + x / 3;
             buf_pos = y*psb + x;
 
-            (*rgb_array)[new_pos * 3 + 0] = image_buf[buf_pos + 2];
-            (*rgb_array)[new_pos * 3 + 1] = image_buf[buf_pos + 1];
-            (*rgb_array)[new_pos * 3 + 2] = image_buf[buf_pos + 0];
+            (*rgb_array)[new_pos].red_ = (float)image_buf[buf_pos + 2];
+            (*rgb_array)[new_pos].green_ = (float)image_buf[buf_pos + 1];
+            (*rgb_array)[new_pos].blue_ = (float)image_buf[buf_pos + 0];
         }
 
     // Everything is in memory now, the file wan be closed
