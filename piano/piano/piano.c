@@ -2,6 +2,7 @@
 //
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <windows.h>
 
@@ -13,8 +14,14 @@
 //char key_table[NUM_NOTES];
 //float freq_table[NUM_NOTES];
 
-char* key_table;
-float* freq_table;
+char* key_table = NULL;
+float* freq_table = NULL;
+
+int num_keys = 0;
+
+void initialize();
+void finalize();
+int  findFrequency(const char note);
 
 float getFrequencyFromKey(char key)
 {
@@ -28,8 +35,6 @@ float getFrequencyFromKey(char key)
 
 	return 0.0f;
 }
-
-
 void playSound(void)
 {
 	char ch = getch();
@@ -38,7 +43,7 @@ void playSound(void)
 
 }
 
-int* my_array = 0;
+//int* my_array = 0;
 
 int main()
 {
@@ -55,9 +60,19 @@ int main()
 	{
 		printf("%d\n", my_array[i]);
 	}*/
+	initialize();
 
-	
+	while (true) // while(1) without stdbool.h
+	{
+		const char c = (char)getch();	// input one character
 
+		if (c == 'x') break;
+
+		Beep(findFrequency(c), 500);
+	}
+
+	finalize();
+	/*
 	FILE* input_file = fopen("key_mapping.txt", "r");
 
 	if (!input_file)
@@ -92,6 +107,84 @@ int main()
 	}
 
 	fclose(input_file);
+	free(key_table);
+	free(freq_table);
+	*/
+
+	return 0;
+}
+
+void initialize()
+{
+	FILE* input_file = fopen("key_mapping.txt", "r");
+
+	if (!input_file)
+	{
+		printf("File was not found.");
+		exit(1);
+	}
+
+	fscanf(input_file, "%d\n", &num_keys);	// don't forget \n
+
+	printf("aa : %d\n", num_keys);
+
+	// dynamically allocate memory for arrays
+	key_table = (char*)malloc(num_keys);
+	freq_table = (float*)malloc(sizeof(float) * num_keys);
+
+	for (int i = 0; i < num_keys; i++)
+	{
+		// temporary variable to store data from a file
+		char key;
+		float freq;
+
+		// read key and freq data from file
+		fscanf(input_file, "%c %f\n", &key, &freq);	// don't forget \n
+
+		// copy temporary variables to arrays
+		key_table[i] = key;
+		freq_table[i] = freq;
+
+		// print key and freq to confirm data read from a file
+		printf("%c %f\n", key, freq);
+	}
+
+	// don't forget to cloase files after reading file operations
+	fclose(input_file);
+}
+
+void finalize()
+{
+	// if valid memory was allocated to this pointer
+	if (key_table != NULL)
+	{
+		// return memory to OS
+		free(key_table);
+
+		// tag this pointer variable is NOT pointing available memory
+		key_table = NULL;
+	}
+
+	// if valid memory was allocated to this pointer
+	if (freq_table != NULL)
+	{
+		// return memory to OS
+		free(freq_table);
+
+		// tag this pointer variable is NOT pointing available memory
+		freq_table = NULL;
+	}
+}
+
+int  findFrequency(const char note)
+{
+	for (int i = 0; i < num_keys; i++)
+	{
+		if ((char)key_table[i] == note)
+		{
+			return (int)freq_table[i];
+		}
+	}
 
 	return 0;
 }
