@@ -34,14 +34,62 @@ int main()
 
     RGB* rgb_temp = (RGB*)malloc(sizeof(RGB) * res_x * res_y);
     
-    for (int j = 0; j < res_y; j++)
+    // Gaussian blur
+    //float conv_mat[3][3] = { 1, 2, 1,
+    //                        2, 4, 2,
+    //                        1, 2, 1 };
+
+    float conv_mat[3][3] = { -1, -1, -1,
+                            -1, 8, -1,
+                            -1, -1, -1 };
+
+    /*for (int sub_j = 0; sub_j < 3; sub_j++)
+    for (int sub_i = 0; sub_i < 3; sub_i++)
     {
-        for (int i = 0; i < res_x; i++)
-        {
-            rgb_temp[i + res_x * j] = getPixelColor(rgb_array, res_x, res_y, i + res_x/2, j + res_y/2);
-        }
+        conv_mat[sub_i][sub_j] /= 16.0f;
+    }*/
+
+    //for (int sub = 0; sub < 9; sub++)
+    //    (&conv_mat[0][0])[sub] /= 16.0f;
+
+    //for (int frame = 0; frame < 400; frame++)
+    //{
+    for (int r = 0; r < 1; r++) // repeated smoothing
+    {
+        for (int j = 0; j < res_y; j++)
+            for (int i = 0; i < res_x; i++)
+            {
+                RGB color_temp = { 0.0f, 0.0f, 0.0f };
+
+                for (int sub_j = 0; sub_j < 3; sub_j++)
+                    for (int sub_i = 0; sub_i < 3; sub_i++)
+                    {
+                        RGB color_neighbor = getPixelColor(rgb_array, res_x, res_y, i + sub_i - 1, j + sub_j -1);
+                    
+                        color_neighbor.red *= conv_mat[sub_i][sub_j];
+                        color_neighbor.green *= conv_mat[sub_i][sub_j];
+                        color_neighbor.blue *= conv_mat[sub_i][sub_j];
+
+                        color_temp.red += color_neighbor.red;
+                        color_temp.green += color_neighbor.green;
+                        color_temp.blue += color_neighbor.blue;
+                    }
+                //rgb_temp[i + res_x * j] = getPixelColor(rgb_array, res_x, res_y, i + frame, j + frame/2);
+                rgb_temp[i + res_x * j] = color_temp;
+            }
+        
+        for (int j = 0; j < res_y; j++)
+            for (int i = 0; i < res_x; i++)
+            {
+                rgb_array[i + res_x * j] = rgb_temp[i + res_x * j];
+            }
+        //char ofn[256];
+        //sprintf(ofn, "output%05d.bmp", frame);
+        //writeBMP24(ofn, res_x, res_y, rgb_temp);
+    //}
     }
-    writeBMP24("output1.bmp", res_x, res_y, rgb_temp);
+    writeBMP24("output_3.bmp", res_x, res_y, rgb_temp);
+
 
     free(rgb_array);
     free(rgb_temp);
